@@ -9,6 +9,11 @@ dist/
 web-build/
 expo-env.d.ts
 
+.idea/*
+!.idea/codeStyles
+!.idea/runConfigurations
+!.idea/vcs.xml
+
 # Native
 .kotlin/
 *.orig.*
