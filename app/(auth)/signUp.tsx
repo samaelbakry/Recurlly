@@ -18,6 +18,7 @@ import { SafeAreaView as RNSafeAreaView } from "react-native-safe-area-context";
 const SafeAreaView = styled(RNSafeAreaView);
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_PASSWORD_FIELDS = new Set(["email_address", "password"]);
 
 function cleanMessage(message?: string) {
   return (
@@ -66,7 +67,6 @@ export default function SignUp() {
         : EMAIL_PATTERN.test(email)
           ? ""
           : "Enter a valid email address.",
-
       password: !password
         ? ""
         : password.length >= 8
@@ -77,47 +77,50 @@ export default function SignUp() {
 
   const canSubmit =
     EMAIL_PATTERN.test(email) && password.length >= 8 && !isFetching;
-const handleSubmit = async () => {
-  if (!canSubmit) return;
 
-  setLocalError("");
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+    setLocalError("");
 
-  try {
-    // create signup
-    const result = await signUp.password({
-      emailAddress: email,
-      password,
-    });
-
-    if (result.error) {
-      setLocalError(cleanMessage(result.error.message));
-      return;
-    }
-
-    const verification =
-      await signUp.verifications.sendEmailCode();
-
-    if (verification.error) {
-      setLocalError(
-        cleanMessage(verification.error.message)
+    try {
+      const unsupportedRequiredFields = signUp.requiredFields.filter(
+        (field) => !EMAIL_PASSWORD_FIELDS.has(field),
       );
-      return;
-    }
-    router.push(
-      `/verify?email=${encodeURIComponent(email)}`
-    );
-  } catch (error) {
-    const message = isClerkAPIResponseError(error)
-      ? error.errors[0]?.longMessage ||
-        error.errors[0]?.message
-      : undefined;
 
-    setLocalError(cleanMessage(message));
-  }
-};
-  if (signUp.status == null) {
-    return null;
-  }
+      if (unsupportedRequiredFields.length > 0) {
+        setLocalError(
+          `This Clerk project still requires ${unsupportedRequiredFields.join(
+            ", ",
+          )}. Disable those requirements in Clerk to use email and password only.`,
+        );
+        return;
+      }
+
+      const createResult = await signUp.password({
+        emailAddress: email,
+        password,
+      });
+
+      if (createResult.error) {
+        setLocalError(cleanMessage(createResult.error.message));
+        return;
+      }
+
+      const codeResult = await signUp.verifications.sendEmailCode();
+
+      if (codeResult.error) {
+        setLocalError(cleanMessage(codeResult.error.message));
+        return;
+      }
+
+      router.push(`/verify?email=${encodeURIComponent(email)}`);
+    } catch (error) {
+      const message = isClerkAPIResponseError(error)
+        ? error.errors[0]?.longMessage || error.errors[0]?.message
+        : undefined;
+      setLocalError(cleanMessage(message));
+    }
+  };
 
   if (signUp.status === "complete") {
     return <Redirect href="/" />;
@@ -139,15 +142,13 @@ const handleSubmit = async () => {
 
           <View className="auth-card">
             <View className="auth-form">
-              {/* Email */}
               <View className="auth-field">
                 <Text className="auth-label">Email</Text>
                 <TextInput
                   className={clsx(
                     "auth-input",
-                    (fieldErrors.email ||
-                      errors.fields.emailAddress) &&
-                      "auth-input-error"
+                    (fieldErrors.email || errors.fields.emailAddress) &&
+                      "auth-input-error",
                   )}
                   value={emailAddress}
                   onChangeText={setEmailAddress}
@@ -161,30 +162,24 @@ const handleSubmit = async () => {
                 />
 
                 {!!fieldErrors.email && (
-                  <Text className="auth-error">
-                    {fieldErrors.email}
-                  </Text>
+                  <Text className="auth-error">{fieldErrors.email}</Text>
                 )}
 
                 {!!errors.fields.emailAddress && (
                   <Text className="auth-error">
-                    {cleanMessage(
-                      errors.fields.emailAddress.message
-                    )}
+                    {cleanMessage(errors.fields.emailAddress.message)}
                   </Text>
                 )}
               </View>
 
-              {/* Password */}
               <View className="auth-field">
                 <Text className="auth-label">Password</Text>
 
                 <TextInput
                   className={clsx(
                     "auth-input",
-                    (fieldErrors.password ||
-                      errors.fields.password) &&
-                      "auth-input-error"
+                    (fieldErrors.password || errors.fields.password) &&
+                      "auth-input-error",
                   )}
                   value={password}
                   onChangeText={setPassword}
@@ -196,16 +191,12 @@ const handleSubmit = async () => {
                 />
 
                 {!!fieldErrors.password && (
-                  <Text className="auth-error">
-                    {fieldErrors.password}
-                  </Text>
+                  <Text className="auth-error">{fieldErrors.password}</Text>
                 )}
 
                 {!!errors.fields.password && (
                   <Text className="auth-error">
-                    {cleanMessage(
-                      errors.fields.password.message
-                    )}
+                    {cleanMessage(errors.fields.password.message)}
                   </Text>
                 )}
 
@@ -214,17 +205,12 @@ const handleSubmit = async () => {
                 </Text>
               </View>
 
-              {!!localError && (
-                <Text className="auth-error">
-                  {localError}
-                </Text>
-              )}
+              {!!localError && <Text className="auth-error">{localError}</Text>}
 
               <Pressable
                 className={clsx(
                   "auth-button",
-                  !canSubmit &&
-                    "auth-button-disabled"
+                  !canSubmit && "auth-button-disabled",
                 )}
                 onPress={handleSubmit}
                 disabled={!canSubmit}
@@ -232,20 +218,14 @@ const handleSubmit = async () => {
                 {isFetching ? (
                   <ActivityIndicator color="#081126" />
                 ) : (
-                  <Text className="auth-button-text">
-                    Create account
-                  </Text>
+                  <Text className="auth-button-text">Create account</Text>
                 )}
               </Pressable>
 
               <View className="auth-link-row">
-                <Text className="auth-link-copy">
-                  Already have an account?
-                </Text>
+                <Text className="auth-link-copy">Already have an account?</Text>
                 <Link href="/signin">
-                  <Text className="auth-link">
-                    Sign in
-                  </Text>
+                  <Text className="auth-link">Sign in</Text>
                 </Link>
               </View>
 

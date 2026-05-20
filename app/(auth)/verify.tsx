@@ -60,13 +60,12 @@ export default function Verify() {
   const [code, setCode] = useState("");
   const [localError, setLocalError] = useState("");
   const [flowMessage, setFlowMessage] = useState(
-    "We sent a verification code to your email."
+    "We sent a verification code to your email.",
   );
 
   const email = typeof params.email === "string" ? params.email : "";
 
   const isFetching = fetchStatus === "fetching";
-  const isSignUpLoading = signUp.status == null;
   const canVerify = /^\d{6}$/.test(code) && !isFetching;
 
   const hasPendingEmailVerification =
@@ -86,7 +85,7 @@ export default function Verify() {
         navigate: ({ session, decorateUrl }) => {
           if (session?.currentTask) {
             setFlowMessage(
-              "One more account step is required before your dashboard opens."
+              "One more account step is required before your dashboard opens.",
             );
             return;
           }
@@ -121,31 +120,34 @@ export default function Verify() {
     setFlowMessage("");
 
     try {
-      const verificationResult =
-        await signUp.verifications.verifyEmailCode({
-          code,
-        });
+      const verificationResult = await signUp.verifications.verifyEmailCode({
+        code,
+      });
 
       if (verificationResult.error) {
+        setLocalError(cleanMessage(verificationResult.error.message));
+        return;
+      }
+
+      if (signUp.status !== "complete" || !signUp.createdSessionId) {
+        const missingFields = signUp.missingFields.join(", ");
+        setFlowMessage("");
         setLocalError(
-          cleanMessage(verificationResult.error.message)
+          missingFields
+            ? `Verification complete, but your account still needs: ${missingFields}.`
+            : "Verification complete, but the session is not ready yet. Try continuing again.",
         );
         return;
       }
 
       setFlowMessage("Verification complete. Opening dashboard...");
-
       await completeSignUp();
     } catch (error) {
       const message = isClerkAPIResponseError(error)
         ? error.errors[0]?.longMessage || error.errors[0]?.message
         : undefined;
 
-      setLocalError(
-        cleanMessage(
-          message || errors.fields.code?.message
-        )
-      );
+      setLocalError(cleanMessage(message || errors.fields.code?.message));
     }
   };
 
@@ -153,7 +155,13 @@ export default function Verify() {
     setLocalError("");
 
     try {
-      await signUp.verifications.sendEmailCode();
+      const result = await signUp.verifications.sendEmailCode();
+
+      if (result.error) {
+        setLocalError(cleanMessage(result.error.message));
+        return;
+      }
+
       setFlowMessage("A fresh code has been sent.");
     } catch (error) {
       const message = isClerkAPIResponseError(error)
@@ -164,21 +172,13 @@ export default function Verify() {
     }
   };
 
-  // Clerk still loading
-  if (isSignUpLoading) {
-    return null;
-  }
+  const shouldStayOnVerifyPage =
+    !!email || hasPendingEmailVerification || signUp.status === "complete";
 
-  // signup flow missing → back to signup
-  if (
-    !isSignUpLoading &&
-    !hasPendingEmailVerification &&
-    signUp.status !== "complete"
-  ) {
+  if (!shouldStayOnVerifyPage) {
     return <Redirect href="/signUp" />;
   }
 
-  // already completed
   if (signUp.status === "complete") {
     return null;
   }
@@ -200,15 +200,12 @@ export default function Verify() {
           <View className="auth-card">
             <View className="auth-form">
               <View className="auth-field">
-                <Text className="auth-label">
-                  Verification code
-                </Text>
+                <Text className="auth-label">Verification code</Text>
 
                 <TextInput
                   className={clsx(
                     "auth-input",
-                    (fieldError || errors.fields.code) &&
-                      "auth-input-error"
+                    (fieldError || errors.fields.code) && "auth-input-error",
                   )}
                   value={code}
                   onChangeText={setCode}
@@ -221,37 +218,26 @@ export default function Verify() {
                 />
 
                 {!!fieldError && (
-                  <Text className="auth-error">
-                    {fieldError}
-                  </Text>
+                  <Text className="auth-error">{fieldError}</Text>
                 )}
 
                 {!!errors.fields.code && (
                   <Text className="auth-error">
-                    {cleanMessage(
-                      errors.fields.code.message
-                    )}
+                    {cleanMessage(errors.fields.code.message)}
                   </Text>
                 )}
 
                 {!!flowMessage && (
-                  <Text className="auth-helper">
-                    {flowMessage}
-                  </Text>
+                  <Text className="auth-helper">{flowMessage}</Text>
                 )}
               </View>
 
-              {!!localError && (
-                <Text className="auth-error">
-                  {localError}
-                </Text>
-              )}
+              {!!localError && <Text className="auth-error">{localError}</Text>}
 
               <Pressable
                 className={clsx(
                   "auth-button",
-                  !canVerify &&
-                    "auth-button-disabled"
+                  !canVerify && "auth-button-disabled",
                 )}
                 onPress={handleVerify}
                 disabled={!canVerify}
@@ -259,9 +245,7 @@ export default function Verify() {
                 {isFetching ? (
                   <ActivityIndicator color="#081126" />
                 ) : (
-                  <Text className="auth-button-text">
-                    Verify and continue
-                  </Text>
+                  <Text className="auth-button-text">Verify and continue</Text>
                 )}
               </Pressable>
 
@@ -276,14 +260,10 @@ export default function Verify() {
               </Pressable>
 
               <View className="auth-link-row">
-                <Text className="auth-link-copy">
-                  Wrong email?
-                </Text>
+                <Text className="auth-link-copy">Wrong email?</Text>
 
                 <Link href="/signUp">
-                  <Text className="auth-link">
-                    Start over
-                  </Text>
+                  <Text className="auth-link">Start over</Text>
                 </Link>
               </View>
             </View>

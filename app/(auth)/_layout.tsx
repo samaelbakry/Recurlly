@@ -7,18 +7,11 @@ export default function AuthLayout() {
 
   if (!isLoaded) return null;
 
-  if (signUp?.status == null) {
-    return null;
-  }
+  const isPendingVerification =
+    signUp?.status === "missing_requirements" &&
+    signUp.unverifiedFields?.includes("email_address");
 
-  const waitingVerification =
-    signUp.status === "missing_requirements" &&
-    signUp.unverifiedFields?.includes("email_address") &&
-    signUp.missingFields?.length === 0;
-
-  const hasPendingTask = signUp.status === "complete";
-
-  if (isSignedIn && !waitingVerification && !hasPendingTask) {
+  if (isSignedIn && !isPendingVerification) {
     return <Redirect href="/" />;
   }
 

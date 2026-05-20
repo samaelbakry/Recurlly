@@ -50,31 +50,25 @@ export default function Signin() {
 
     const [emailAddress, setEmailAddress] = useState("");
     const [password, setPassword] = useState("");
-    const [code, setCode] = useState("");
     const [localError, setLocalError] = useState("");
-    const [flowMessage, setFlowMessage] = useState("");
-    const [awaitingEmailCode, setAwaitingEmailCode] = useState(false);
 
     const email = emailAddress.trim().toLowerCase();
     const isFetching = fetchStatus === "fetching";
-    const isVerificationStep = signIn.status === "needs_client_trust" || awaitingEmailCode;
 
     const fieldErrors = useMemo(() => {
         return {
             email: !emailAddress ? "" : EMAIL_PATTERN.test(email) ? "" : "Enter a valid email address.",
             password: !password ? "" : password.length >= 8 ? "" : "Use at least 8 characters.",
-            code: !code ? "" : /^\d{6}$/.test(code) ? "" : "Enter the 6-digit code.",
         };
-    }, [code, email, emailAddress, password]);
+    }, [email, emailAddress, password]);
 
     const canSubmit = EMAIL_PATTERN.test(email) && password.length >= 8 && !isFetching;
-    const canVerify = /^\d{6}$/.test(code) && !isFetching;
 
     const completeSignIn = async () => {
         await signIn.finalize({
             navigate: ({session, decorateUrl}) => {
                 if (session?.currentTask) {
-                    setFlowMessage("One more account step is required before your dashboard opens.");
+                    setLocalError("One more account step is required before your dashboard opens.");
                     return;
                 }
 
@@ -89,25 +83,10 @@ export default function Signin() {
         });
     };
 
-    const sendEmailCodeIfAvailable = async () => {
-        const emailCodeFactor = signIn.supportedSecondFactors.find(
-            (factor) => factor.strategy === "email_code",
-        );
-
-        if (emailCodeFactor) {
-            await signIn.mfa.sendEmailCode();
-            setAwaitingEmailCode(true);
-            setFlowMessage("We sent a verification code to your email.");
-        } else {
-            setFlowMessage("Use your configured verification method to continue.");
-        }
-    };
-
     const handleSubmit = async () => {
         if (!canSubmit) return;
 
         setLocalError("");
-        setFlowMessage("");
 
         try {
             const {error} = await signIn.password({
@@ -125,48 +104,13 @@ export default function Signin() {
                 return;
             }
 
-            if (signIn.status === "needs_client_trust" || signIn.status === "needs_second_factor") {
-                await sendEmailCodeIfAvailable();
-                return;
-            }
-
-            setLocalError("We need a little more information before opening your dashboard.");
+            setLocalError("This account requires another sign-in step. Disable MFA in Clerk to use email and password only.");
         } catch (error) {
             const message = isClerkAPIResponseError(error)
                 ? error.errors[0]?.longMessage || error.errors[0]?.message
                 : undefined;
             setLocalError(cleanMessage(message));
         }
-    };
-
-    const handleVerify = async () => {
-        if (!canVerify) return;
-
-        setLocalError("");
-
-        try {
-            await signIn.mfa.verifyEmailCode({code});
-
-            if (signIn.status === "complete") {
-                await completeSignIn();
-                return;
-            }
-
-            setLocalError("That code was accepted, but another step is still required.");
-        } catch (error) {
-            const message = isClerkAPIResponseError(error)
-                ? error.errors[0]?.longMessage || error.errors[0]?.message
-                : undefined;
-            setLocalError(cleanMessage(message || errors.fields.code?.message));
-        }
-    };
-
-    const handleReset = () => {
-        signIn.reset();
-        setCode("");
-        setLocalError("");
-        setFlowMessage("");
-        setAwaitingEmailCode(false);
     };
 
     return (
@@ -184,52 +128,6 @@ export default function Signin() {
                     <AuthHeader/>
 
                     <View className="auth-card">
-                        {isVerificationStep ? (
-                            <View className="auth-form">
-                                <View className="auth-field">
-                                    <Text className="auth-label">Verification code</Text>
-                                    <TextInput
-                                        className={clsx("auth-input", (fieldErrors.code || errors.fields.code) && "auth-input-error")}
-                                        value={code}
-                                        onChangeText={setCode}
-                                        placeholder="Enter the code"
-                                        placeholderTextColor="rgba(0, 0, 0, 0.45)"
-                                        keyboardType="number-pad"
-                                        textContentType="oneTimeCode"
-                                        autoComplete="one-time-code"
-                                        maxLength={6}
-                                    />
-                                    {!!fieldErrors.code && <Text className="auth-error">{fieldErrors.code}</Text>}
-                                    {!!flowMessage && <Text className="auth-helper">{flowMessage}</Text>}
-                                </View>
-
-                                {!!localError && <Text className="auth-error">{localError}</Text>}
-
-                                <Pressable
-                                    className={clsx("auth-button", !canVerify && "auth-button-disabled")}
-                                    onPress={handleVerify}
-                                    disabled={!canVerify}
-                                >
-                                    {isFetching ? (
-                                        <ActivityIndicator color="#081126"/>
-                                    ) : (
-                                        <Text className="auth-button-text">Verify and continue</Text>
-                                    )}
-                                </Pressable>
-
-                                <Pressable
-                                    className="auth-secondary-button"
-                                    onPress={sendEmailCodeIfAvailable}
-                                    disabled={isFetching}
-                                >
-                                    <Text className="auth-secondary-button-text">Send a new code</Text>
-                                </Pressable>
-
-                                <Pressable onPress={handleReset} disabled={isFetching}>
-                                    <Text className="auth-link text-center">Use a different email</Text>
-                                </Pressable>
-                            </View>
-                        ) : (
                             <View className="auth-form">
                                 <View className="auth-field">
                                     <Text className="auth-label">Email</Text>
@@ -303,7 +201,6 @@ export default function Signin() {
                                     </Link>
                                 </View>
                             </View>
-                        )}
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
