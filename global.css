@@ -232,6 +232,34 @@
         @apply py-4 text-sm font-sans-medium text-black/60;
     }
 
+    .subscriptions-header {
+        @apply gap-4 pb-5 pt-3;
+    }
+
+    .subscriptions-title {
+        @apply text-3xl font-sans-extrabold text-primary;
+    }
+
+    .subscriptions-search {
+        @apply rounded-2xl border border-border bg-card px-4 py-4 text-base font-sans-medium text-primary;
+    }
+
+    .subscriptions-count {
+        @apply text-sm font-sans-semibold text-muted-foreground;
+    }
+
+    .subscriptions-empty {
+        @apply items-center rounded-2xl border border-border bg-card px-5 py-8;
+    }
+
+    .subscriptions-empty-title {
+        @apply text-lg font-sans-bold text-primary;
+    }
+
+    .subscriptions-empty-copy {
+        @apply mt-2 text-center text-sm font-sans-medium text-muted-foreground;
+    }
+
     .auth-safe-area {
         @apply flex-1 bg-background;
     }
