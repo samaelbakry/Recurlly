@@ -3,6 +3,8 @@ import React from 'react'
 import {formatCurrency} from "@/lib/utils/currencyFormat";
 
 export default function UpcomingSubscriptionCard({name, icon, daysLeft, price, currency}: UpcomingSubscription) {
+    const renewalLabel = daysLeft === 0 ? "Today" : daysLeft === 1 ? "1 Day Left" : `${daysLeft} Days Left`;
+
     return (
         <View className="upcoming-card px-2">
             <View className="upcoming-row">
@@ -12,7 +14,7 @@ export default function UpcomingSubscriptionCard({name, icon, daysLeft, price, c
                         {formatCurrency(price, currency)}
                     </Text>
                     <Text className="upcoming-meta" numberOfLines={1}>
-                        {daysLeft > 1 ? `${daysLeft} Days Left` : "Last Day"}
+                        {renewalLabel}
                     </Text>
                 </View>
             </View>

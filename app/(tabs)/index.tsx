@@ -4,16 +4,16 @@ import {FlatList, Image, Pressable, Text, View} from "react-native";
 import {styled} from "nativewind";
 import {SafeAreaView as RNSafeAreaView} from "react-native-safe-area-context";
 import images from "@/constants/images"
-import {HOME_BALANCE, UPCOMING_SUBSCRIPTIONS} from "@/constants/data";
 import {icons} from "@/constants/icons";
 import {formatCurrency} from "@/lib/utils/currencyFormat"
 import dayjs from "dayjs";
 import ListHeadings from "@/app/components/ListHeadings";
 import UpcomingSubscriptionCard from "@/app/components/UpcomingSubscriptionCard";
 import SubscriptionCard from "@/app/components/SubscriptionCard";
-import {useState} from "react";
+import {useMemo, useState} from "react";
 import CreateSubscriptionModal from "@/src/components/CreateSubscriptionModal";
 import {useSubscriptions} from "@/src/context/SubscriptionsContext";
+import {getMonthlyTotal, getUpcomingSubscriptions} from "@/lib/utils/subscriptionInsights";
 
 const SafeAreaView = styled(RNSafeAreaView)
 
@@ -24,6 +24,9 @@ export default function App() {
     const {subscriptions, addSubscription} = useSubscriptions()
     const email = user?.primaryEmailAddress?.emailAddress ?? "Your account"
     const avatarSource = user?.imageUrl ? {uri: user.imageUrl} : images.avatar
+    const monthlyTotal = useMemo(() => getMonthlyTotal(subscriptions), [subscriptions])
+    const upcomingSubscriptions = useMemo(() => getUpcomingSubscriptions(subscriptions, 5), [subscriptions])
+    const nextRenewalDate = upcomingSubscriptions[0]?.renewalDate
 
     const handleCreateSubscription = (subscription: Subscription) => {
         addSubscription(subscription)
@@ -63,17 +66,17 @@ export default function App() {
                             </Text>
                             <View className="home-balance-row">
                                 <Text className="home-balance-amount">
-                                    {formatCurrency(HOME_BALANCE.amount)}
+                                    {formatCurrency(monthlyTotal)}
                                 </Text>
                                 <Text className="home-balance-date">
-                                    {dayjs(HOME_BALANCE.nextRenewalDate).format("DD/MM")}
+                                    {nextRenewalDate ? dayjs(nextRenewalDate).format("DD/MM") : "--/--"}
                                 </Text>
                             </View>
                         </View>
                         <View className="mb-5">
                             <ListHeadings title="UpComing"/>
                             <FlatList
-                                data={UPCOMING_SUBSCRIPTIONS}
+                                data={upcomingSubscriptions}
                                 horizontal={true}
                                 showsHorizontalScrollIndicator={false}
                                 keyExtractor={item => item.id}
