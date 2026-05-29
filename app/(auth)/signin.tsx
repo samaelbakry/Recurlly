@@ -32,7 +32,7 @@ function AuthHeader() {
                     <Text className="auth-logo-mark-text">R</Text>
                 </View>
                 <View>
-                    <Text className="auth-wordmark mb-1">Recurly</Text>
+                    <Text className="auth-wordmark mb-1">Recurrly</Text>
                     <Text className="auth-wordmark-sub">Smart billing</Text>
                 </View>
             </View>
