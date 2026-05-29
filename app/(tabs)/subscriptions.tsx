@@ -1,4 +1,4 @@
-import {FlatList, Text, TextInput, View} from "react-native";
+import {Alert, FlatList, Text, TextInput, View} from "react-native";
 import {styled} from "nativewind";
 import {SafeAreaView as RNSafeAreaView} from "react-native-safe-area-context";
 import {useMemo, useState} from "react";
@@ -10,7 +10,7 @@ const SafeAreaView = styled(RNSafeAreaView)
 export default function Subscriptions() {
     const [searchQuery, setSearchQuery] = useState("")
     const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<string | null>(null)
-    const {subscriptions} = useSubscriptions()
+    const {subscriptions, deleteSubscription} = useSubscriptions()
 
     const filteredSubscriptions = useMemo(() => {
         const normalizedQuery = searchQuery.trim().toLowerCase()
@@ -35,6 +35,24 @@ export default function Subscriptions() {
             return searchableText.includes(normalizedQuery)
         })
     }, [searchQuery, subscriptions])
+
+    const handleDeleteSubscription = (subscription: Subscription) => {
+        Alert.alert(
+            "Delete subscription",
+            `Delete ${subscription.name}?`,
+            [
+                {text: "Cancel", style: "cancel"},
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: () => {
+                        deleteSubscription(subscription.id)
+                        setExpandedSubscriptionId((currentId) => (currentId === subscription.id ? null : currentId))
+                    },
+                },
+            ],
+        )
+    }
 
     return (
         <SafeAreaView className="flex-1 bg-background">
@@ -76,6 +94,7 @@ export default function Subscriptions() {
                         {...item}
                         expanded={expandedSubscriptionId === item.id}
                         onPress={() => setExpandedSubscriptionId((currentId) => (currentId === item.id ? null : item.id))}
+                        onDeletePress={() => handleDeleteSubscription(item)}
                     />
                 )}
                 showsVerticalScrollIndicator={false}

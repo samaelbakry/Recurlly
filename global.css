@@ -116,12 +116,24 @@
         @apply text-2xl font-sans-bold text-primary;
     }
 
+    .list-actions {
+        @apply flex-row items-center gap-2;
+    }
+
     .list-action {
         @apply rounded-full border border-black/20 px-4 py-1;
     }
 
     .list-action-text {
         @apply text-lg font-sans-semibold text-primary;
+    }
+
+    .list-add-action {
+        @apply size-10 items-center justify-center;
+    }
+
+    .list-add-icon {
+        @apply size-10;
     }
 
     .upcoming-card {
@@ -226,6 +238,14 @@
 
     .sub-cancel-text {
         @apply font-sans-bold text-background;
+    }
+
+    .sub-delete {
+        @apply mt-2 items-center rounded-full bg-destructive py-4;
+    }
+
+    .sub-delete-text {
+        @apply font-sans-bold text-white;
     }
 
     .home-empty-state {

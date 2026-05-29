@@ -4,6 +4,7 @@ import React, {createContext, useContext, useMemo, useState} from "react";
 type SubscriptionsContextValue = {
     subscriptions: Subscription[];
     addSubscription: (subscription: Subscription) => void;
+    deleteSubscription: (subscriptionId: string) => void;
 };
 
 const SubscriptionsContext = createContext<SubscriptionsContextValue | undefined>(undefined);
@@ -11,11 +12,15 @@ const SubscriptionsContext = createContext<SubscriptionsContextValue | undefined
 export function SubscriptionsProvider({children}: { children: React.ReactNode }) {
     const [subscriptions, setSubscriptions] = useState<Subscription[]>(HOME_SUBSCRIPTIONS);
 
-    const value = useMemo(
-        () => ({
+    const value = useMemo(() => ({
             subscriptions,
             addSubscription: (subscription: Subscription) => {
                 setSubscriptions((currentSubscriptions) => [subscription, ...currentSubscriptions]);
+            },
+            deleteSubscription: (subscriptionId: string) => {
+                setSubscriptions((currentSubscriptions) =>
+                    currentSubscriptions.filter((subscription) => subscription.id !== subscriptionId),
+                );
             },
         }),
         [subscriptions],

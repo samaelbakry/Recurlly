@@ -1,4 +1,5 @@
 import {Image, Pressable, Text, View} from 'react-native'
+import type {GestureResponderEvent} from 'react-native'
 import React from 'react'
 import {formatCurrency, formatStatusLabel, formatSubscriptionDateTime} from "@/lib/utils/currencyFormat";
 import {clsx} from "clsx";
@@ -12,9 +13,15 @@ const SubscriptionCard =
          category,
          plan,
          expanded, onPress,
+         onDeletePress,
          paymentMethod,
          startDate, status
      }: SubscriptionCardProps) => {
+        const handleDeletePress = (event: GestureResponderEvent) => {
+            event.stopPropagation();
+            onDeletePress?.();
+        }
+
         return (
             <Pressable onPress={onPress} className={clsx("sub-card", expanded ? "sub-card-expanded" : "bg-card")}
                        style={!expanded && color ? {backgroundColor: color} : undefined}>
@@ -72,6 +79,16 @@ const SubscriptionCard =
                                 </View>
                             </View>
                         </View>
+                        {onDeletePress && (
+                            <Pressable
+                                className="sub-delete"
+                                onPress={handleDeletePress}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Delete ${name}`}
+                            >
+                                <Text className="sub-delete-text">Delete subscription</Text>
+                            </Pressable>
+                        )}
                     </View>
                 )}
             </Pressable>

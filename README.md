@@ -1,50 +1,56 @@
-# Welcome to your Expo app 👋
+# Recurrly
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Recurrly is a mobile subscription tracker built with Expo and React Native. It helps users see their active
+subscriptions, upcoming renewals, monthly spending, and account settings in one simple app.
 
-## Get started
+## Main Features
 
-1. Install dependencies
+- Sign up, sign in, email verification, and sign out using Clerk authentication.
+- Home dashboard with the user's account email, avatar, monthly subscription total, and next renewal date.
+- Upcoming subscriptions section showing renewals that are coming soon.
+- Full subscriptions screen with search by name, plan, category, billing, status, or payment method.
+- Add a new subscription with name, price, billing frequency, and category.
+- Expand a subscription card to view payment method, category, start date, renewal date, and status.
+- Delete a specific subscription from the expanded subscription card.
+- Insights screen with monthly spend, active subscription count, weekly spending chart, recent history, and upcoming
+  renewals.
+- Settings screen with signed-in account details and sign out support.
+- Bottom tab navigation for Home, Subscriptions, Insights, and Settings.
 
-   ```bash
-   npm install
-   ```
+## Project Skills
 
-2. Start the app
+- React Native app development with Expo.
+- File-based routing with Expo Router.
+- Authentication flow with Clerk.
+- Shared state management with React Context.
+- Reusable UI components for headings, cards, modals, and tab icons.
+- Form handling for creating subscriptions.
+- Filtering and searching subscription data.
+- Date handling with Day.js for renewals and spending insights.
+- Currency formatting for subscription prices.
+- Responsive mobile styling with NativeWind and global CSS classes.
+- TypeScript interfaces for app data and component props.
 
-   ```bash
-   npx expo start
-   ```
+## Tech Stack
 
-In the output, you'll find options to open the app in a
+- Expo
+- React Native
+- TypeScript
+- Expo Router
+- Clerk
+- NativeWind
+- Day.js
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Project Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- `app/` contains the app routes, tabs, auth screens, and screen-level UI.
+- `app/components/` contains reusable app components like subscription cards and list headings.
+- `src/components/` contains shared feature components like the create subscription modal.
+- `src/context/` contains shared subscription state.
+- `lib/utils/` contains formatting and subscription insight helpers.
+- `constants/` contains app data, icons, images, and theme values.
 
-## Get a fresh project
+## Notes
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+The app currently uses local in-memory subscription state. Added and deleted subscriptions update while the app is
+running, but they are not persisted to a database yet.
